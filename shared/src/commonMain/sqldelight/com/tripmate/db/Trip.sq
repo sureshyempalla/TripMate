@@ -1,0 +1,25 @@
+CREATE TABLE tripEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    ownerId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    destination TEXT NOT NULL,
+    startDate TEXT NOT NULL,
+    endDate TEXT NOT NULL,
+    coverImageUrl TEXT,
+    createdAtEpochMillis INTEGER NOT NULL
+);
+
+CREATE INDEX tripEntity_ownerId ON tripEntity(ownerId);
+
+selectTripsByOwner:
+SELECT * FROM tripEntity WHERE ownerId = ? ORDER BY startDate ASC;
+
+selectTripById:
+SELECT * FROM tripEntity WHERE id = ?;
+
+upsertTrip:
+INSERT OR REPLACE INTO tripEntity
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteTrip:
+DELETE FROM tripEntity WHERE id = ?;

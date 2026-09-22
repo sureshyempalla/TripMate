@@ -1,0 +1,58 @@
+[versions]
+agp = "8.5.2"
+kotlin = "2.0.20"
+compose-bom = "2024.09.02"
+compose-compiler = "2.0.20"
+sqldelight = "2.0.2"
+coroutines = "1.9.0"
+serialization = "1.7.3"
+ktor = "2.3.12"
+koin = "3.5.6"
+firebase-bom = "33.5.1"
+gitlive-firebase = "2.1.0"
+google-services = "4.4.2"
+androidx-activity = "1.9.2"
+androidx-core = "1.13.1"
+androidx-lifecycle = "2.8.6"
+androidx-work = "2.9.1"
+kotlinx-datetime = "0.6.1"
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+googleServices = { id = "com.google.gms.google-services", version.ref = "google-services" }
+
+[libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+sqldelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+sqldelight-native = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
+sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+
+# GitLive's KMM wrapper around the native Firebase SDKs (Firestore + Messaging
+# have no official Kotlin Multiplatform client from Google).
+firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "gitlive-firebase" }
+firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "gitlive-firebase" }
+firebase-messaging = { module = "dev.gitlive:firebase-messaging", version.ref = "gitlive-firebase" }
+
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-messaging-android = { module = "com.google.firebase:firebase-messaging-ktx" }
+firebase-firestore-android = { module = "com.google.firebase:firebase-firestore-ktx" }
+firebase-auth-android = { module = "com.google.firebase:firebase-auth-ktx" }
+
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
+
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }

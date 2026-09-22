@@ -1,0 +1,39 @@
+# Local machine config — never portable across checkouts
+local.properties
+
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+*/build/
+*/*/build/
+out/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.navigation/
+captures/
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Xcode / iOS
+iosApp/**/xcuserdata/
+iosApp/**/*.xcworkspace/xcuserdata/
+iosApp/**/DerivedData/
+iosApp/Pods/
+*.xcuserstate
+
+# Firebase Functions
+firebase/functions/node_modules/
+firebase/functions/lib/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# OS cruft
+.DS_Store

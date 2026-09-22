@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Data model:
+//   users/{uid}                        -> profile + deviceTokens[] for push
+//   trips/{tripId}                     -> { ownerId, title, destination, startDate, endDate, ... }
+//   activities/{activityId}            -> { tripId, title, startAtEpochMillis, ... }
+//
+// Activities reference their trip by tripId rather than living in a
+// subcollection, because the client needs a single collection-group query
+// ("all activities for these trip ids, sorted by time") to find the next
+// upcoming activity across every trip a user has — a subcollection would
+// need a collection-group query anyway, so a flat collection keeps the
+// Cloud Function's scheduler query simpler.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function ownsTrip(tripId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/trips/$(tripId)).data.ownerId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /trips/{tripId} {
+      allow read, update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    match /activities/{activityId} {
+      allow read, update, delete: if ownsTrip(resource.data.tripId);
+      allow create: if ownsTrip(request.resource.data.tripId);
+    }
+  }
+}

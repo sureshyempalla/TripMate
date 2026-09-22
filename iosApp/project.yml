@@ -1,0 +1,45 @@
+# XcodeGen spec. Run `xcodegen generate` inside /iosApp to produce
+# TripMate.xcodeproj (kept out of source control since it's derived).
+# This is the standard, low-friction way to scaffold a KMM iOS project's
+# Xcode file without hand-writing/committing an opaque .pbxproj.
+name: TripMate
+options:
+  bundleIdPrefix: com.tripmate
+  deploymentTarget:
+    iOS: "16.0"
+
+packages:
+  # No external SPM deps needed here: Firebase iOS SDKs are pulled in
+  # transitively by the GitLive KMM wrappers that `shared.framework`
+  # already links against.
+
+targets:
+  TripMate:
+    type: application
+    platform: iOS
+    sources:
+      - path: TripMate
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tripmate.ios
+        INFOPLIST_FILE: TripMate/Info.plist
+        SWIFT_VERSION: 5.0
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+    dependencies:
+      - framework: ../shared/build/xcode-frameworks/Debug/iphonesimulator/shared.framework
+        embed: true
+        codeSign: true
+    preBuildScripts:
+      - name: Build shared KMM framework
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
+    info:
+      path: TripMate/Info.plist
+      properties:
+        UILaunchStoryboardName: ""
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        NSUserNotificationsUsageDescription: "TripMate sends a reminder shortly before your next activity."

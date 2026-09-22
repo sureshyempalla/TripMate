@@ -1,0 +1,34 @@
+CREATE TABLE activityEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    tripId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    placeName TEXT,
+    placeAddress TEXT,
+    placeLatitude REAL,
+    placeLongitude REAL,
+    placeProviderPlaceId TEXT,
+    startAtEpochMillis INTEGER NOT NULL,
+    endAtEpochMillis INTEGER,
+    notes TEXT,
+    reminderLeadMinutes INTEGER NOT NULL
+);
+
+CREATE INDEX activityEntity_tripId ON activityEntity(tripId);
+CREATE INDEX activityEntity_startAt ON activityEntity(startAtEpochMillis);
+
+selectActivitiesByTrip:
+SELECT * FROM activityEntity WHERE tripId = ? ORDER BY startAtEpochMillis ASC;
+
+selectNextActivityForTrips:
+SELECT * FROM activityEntity
+WHERE tripId IN ? AND startAtEpochMillis >= ?
+ORDER BY startAtEpochMillis ASC
+LIMIT 1;
+
+upsertActivity:
+INSERT OR REPLACE INTO activityEntity
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteActivity:
+DELETE FROM activityEntity WHERE id = ?;
