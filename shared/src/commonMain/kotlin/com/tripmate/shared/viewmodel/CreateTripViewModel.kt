@@ -17,6 +17,7 @@ data class CreateTripFormState(
     val destination: String = "",
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
+    val coverImageUrl: String? = null,
     val isSaving: Boolean = false,
     val error: String? = null,
     val savedSuccessfully: Boolean = false,
@@ -41,6 +42,12 @@ class CreateTripViewModel(
 
     fun onDatesChanged(startDate: LocalDate, endDate: LocalDate) {
         _formState.value = _formState.value.copy(startDate = startDate, endDate = endDate)
+    }
+
+    /** [coverImageUrl] is a platform-local file/content URI string; the UI layer owns picking
+     * and persisting the image, this view model only threads the resulting path through. */
+    fun onCoverImageSelected(coverImageUrl: String?) {
+        _formState.value = _formState.value.copy(coverImageUrl = coverImageUrl)
     }
 
     fun save() {
@@ -75,6 +82,7 @@ class CreateTripViewModel(
                         destination = state.destination.trim(),
                         startDate = startDate,
                         endDate = endDate,
+                        coverImageUrl = state.coverImageUrl,
                         createdAtEpochMillis = currentEpochMillisSafe(),
                     )
                 )

@@ -22,6 +22,7 @@ data class TripListUiState(
 )
 
 data class NextActivityBanner(
+    val tripId: String,
     val activityTitle: String,
     val placeName: String?,
     val startAtEpochMillis: Long,
@@ -66,7 +67,7 @@ class TripListViewModel(
         repository.observeNextActivity(userId).collect { activity ->
             _uiState.value = _uiState.value.copy(
                 nextActivityBanner = activity?.let {
-                    NextActivityBanner(it.title, it.place?.name, it.startAtEpochMillis)
+                    NextActivityBanner(it.tripId, it.title, it.place?.name, it.startAtEpochMillis)
                 }
             )
         }
@@ -80,6 +81,13 @@ class TripListViewModel(
 
     fun refresh() = scope.launch {
         repository.startSync(userId)
+    }
+
+    /** Deletes a trip from Firestore and the local cache. Note: this does not
+     * currently cascade-delete the trip's activities in Firestore — pre-existing
+     * behavior of [TripRepository.deleteTrip], not new here. */
+    fun deleteTrip(tripId: String) = scope.launch {
+        repository.deleteTrip(tripId)
     }
 }
 

@@ -1,0 +1,19 @@
+CREATE TABLE packingItemEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    tripId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    isPacked INTEGER NOT NULL
+);
+
+CREATE INDEX packingItemEntity_tripId ON packingItemEntity(tripId);
+
+selectPackingItemsByTrip:
+SELECT * FROM packingItemEntity WHERE tripId = ?;
+
+upsertPackingItem:
+INSERT OR REPLACE INTO packingItemEntity
+VALUES (?, ?, ?, ?, ?);
+
+deletePackingItem:
+DELETE FROM packingItemEntity WHERE id = ?;

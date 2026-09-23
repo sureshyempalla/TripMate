@@ -51,3 +51,51 @@ data class Activity(
     // should fire. Defaults to 30; user-adjustable per activity.
     val reminderLeadMinutes: Int = 30,
 )
+
+enum class PackingCategory { DOCUMENTS, CLOTHING, TOILETRIES, ELECTRONICS, HEALTH, OTHER }
+
+@Serializable
+data class PackingItem(
+    val id: String,
+    val tripId: String,
+    val name: String,
+    val category: PackingCategory = PackingCategory.OTHER,
+    val isPacked: Boolean = false,
+)
+
+enum class ExpenseCategory { LODGING, FOOD, TRANSPORT, ACTIVITIES, SHOPPING, OTHER }
+
+/**
+ * A single spend logged against a trip. Amounts are stored in minor units
+ * (cents) as a Long to avoid floating-point rounding when summing totals —
+ * the UI divides by 100 only at display time.
+ */
+@Serializable
+data class Expense(
+    val id: String,
+    val tripId: String,
+    val title: String,
+    val amountMinorUnits: Long,
+    val currencyCode: String,
+    val category: ExpenseCategory = ExpenseCategory.OTHER,
+    val spentAtEpochMillis: Long,
+    val notes: String? = null,
+)
+
+enum class DocumentType { PASSPORT, BOARDING_PASS, CONFIRMATION, INSURANCE, OTHER }
+
+/**
+ * A trip document (passport photo, boarding pass, hotel confirmation...).
+ * [localUri] points at a copy in this device's app-private storage (the
+ * same local-first pattern as [Trip.coverImageUrl]) — it is not a
+ * cross-device file store, just an offline-accessible wallet per device.
+ */
+@Serializable
+data class TripDocument(
+    val id: String,
+    val tripId: String,
+    val title: String,
+    val type: DocumentType = DocumentType.OTHER,
+    val localUri: String,
+    val addedAtEpochMillis: Long = 0L,
+)

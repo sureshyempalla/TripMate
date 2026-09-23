@@ -25,8 +25,10 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,6 +50,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +60,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,6 +77,9 @@ import com.tripmate.android.ui.screens.AddActivityScreen
 import com.tripmate.android.ui.screens.CreateTripScreen
 import com.tripmate.android.ui.screens.ExploreScreen
 import com.tripmate.android.ui.screens.NotificationsScreen
+import com.tripmate.android.ui.screens.PackingListScreen
+import com.tripmate.android.ui.screens.BudgetScreen
+import com.tripmate.android.ui.screens.DocumentWalletScreen
 import com.tripmate.android.ui.screens.ProfileScreen
 import com.tripmate.android.ui.screens.TripDetailScreen
 import com.tripmate.android.ui.screens.TripListScreen
@@ -164,11 +173,26 @@ private fun TripMateNavHost(userId: String) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var menuExpanded by remember { mutableStateOf(false) }
+    var tripSearchActive by remember { mutableStateOf(false) }
+    var tripSearchQuery by remember { mutableStateOf("") }
+    val tripSearchFocusRequester = remember { FocusRequester() }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val currentTopLevel = topLevelDestinations.firstOrNull { it.route == currentRoute }
     val isTopLevel = currentTopLevel != null
+
+    // Closing search when navigating away from the Trips tab avoids landing
+    // back on it later with a stale query silently filtering the list.
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != "trips" && tripSearchActive) {
+            tripSearchActive = false
+            tripSearchQuery = ""
+        }
+    }
+    LaunchedEffect(tripSearchActive) {
+        if (tripSearchActive) tripSearchFocusRequester.requestFocus()
+    }
 
     DismissibleNavigationDrawer(
         drawerState = drawerState,
@@ -197,23 +221,58 @@ private fun TripMateNavHost(userId: String) {
         Scaffold(
             topBar = {
                 if (currentTopLevel != null) {
+                    val isTripsSearch = currentTopLevel.route == "trips" && tripSearchActive
                     TopAppBar(
-                        title = { Text(if (currentTopLevel.route == "trips") "TripMate" else currentTopLevel.label) },
+                        title = {
+                            if (isTripsSearch) {
+                                OutlinedTextField(
+                                    value = tripSearchQuery,
+                                    onValueChange = { tripSearchQuery = it },
+                                    placeholder = { Text("Search trips") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth().focusRequester(tripSearchFocusRequester),
+                                )
+                            } else {
+                                Text(if (currentTopLevel.route == "trips") "TripMate" else currentTopLevel.label)
+                            }
+                        },
                         navigationIcon = {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Filled.Menu, contentDescription = "Open menu")
+                            if (isTripsSearch) {
+                                IconButton(onClick = {
+                                    tripSearchActive = false
+                                    tripSearchQuery = ""
+                                }) {
+                                    Icon(Icons.Filled.Close, contentDescription = "Close search")
+                                }
+                            } else {
+                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                    Icon(Icons.Filled.Menu, contentDescription = "Open menu")
+                                }
                             }
                         },
                         actions = {
-                            Box {
-                                IconButton(onClick = { menuExpanded = true }) {
-                                    Icon(Icons.Filled.MoreVert, contentDescription = "More options")
+                            if (isTripsSearch) {
+                                if (tripSearchQuery.isNotEmpty()) {
+                                    IconButton(onClick = { tripSearchQuery = "" }) {
+                                        Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                                    }
                                 }
-                                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                                    DropdownMenuItem(text = { Text("Sort trips") }, onClick = { menuExpanded = false })
-                                    DropdownMenuItem(text = { Text("Sync now") }, onClick = { menuExpanded = false })
-                                    Divider()
-                                    DropdownMenuItem(text = { Text("Sign out") }, onClick = { menuExpanded = false })
+                            } else {
+                                if (currentTopLevel.route == "trips") {
+                                    IconButton(onClick = { tripSearchActive = true }) {
+                                        Icon(Icons.Filled.Search, contentDescription = "Search trips")
+                                    }
+                                }
+                                Box {
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(Icons.Filled.MoreVert, contentDescription = "More options")
+                                    }
+                                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                                        DropdownMenuItem(text = { Text("Sort trips") }, onClick = { menuExpanded = false })
+                                        DropdownMenuItem(text = { Text("Sync now") }, onClick = { menuExpanded = false })
+                                        Divider()
+                                        DropdownMenuItem(text = { Text("Sign out") }, onClick = { menuExpanded = false })
+                                    }
                                 }
                             }
                         },
@@ -253,6 +312,7 @@ private fun TripMateNavHost(userId: String) {
                 composable("trips") {
                     TripListScreen(
                         userId = userId,
+                        searchQuery = tripSearchQuery,
                         onOpenTrip = { tripId -> navController.navigate("trip/$tripId") },
                         onCreateTrip = { navController.navigate("trip/new") },
                     )
@@ -275,6 +335,40 @@ private fun TripMateNavHost(userId: String) {
                     TripDetailScreen(
                         tripId = tripId,
                         onAddActivity = { navController.navigate("trip/$tripId/add") },
+                        onOpenActivity = { activityId -> navController.navigate("trip/$tripId/activity/$activityId") },
+                        onOpenPacking = { navController.navigate("trip/$tripId/packing") },
+                        onOpenBudget = { navController.navigate("trip/$tripId/budget") },
+                        onOpenDocuments = { navController.navigate("trip/$tripId/documents") },
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(
+                    route = "trip/{tripId}/packing",
+                    arguments = listOf(navArgument("tripId") { type = NavType.StringType }),
+                ) { entry ->
+                    val tripId = entry.arguments?.getString("tripId").orEmpty()
+                    PackingListScreen(
+                        tripId = tripId,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(
+                    route = "trip/{tripId}/budget",
+                    arguments = listOf(navArgument("tripId") { type = NavType.StringType }),
+                ) { entry ->
+                    val tripId = entry.arguments?.getString("tripId").orEmpty()
+                    BudgetScreen(
+                        tripId = tripId,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(
+                    route = "trip/{tripId}/documents",
+                    arguments = listOf(navArgument("tripId") { type = NavType.StringType }),
+                ) { entry ->
+                    val tripId = entry.arguments?.getString("tripId").orEmpty()
+                    DocumentWalletScreen(
+                        tripId = tripId,
                         onBack = { navController.popBackStack() },
                     )
                 }
@@ -285,6 +379,23 @@ private fun TripMateNavHost(userId: String) {
                     val tripId = entry.arguments?.getString("tripId").orEmpty()
                     AddActivityScreen(
                         tripId = tripId,
+                        activityId = null,
+                        onSaved = { navController.popBackStack() },
+                        onCancel = { navController.popBackStack() },
+                    )
+                }
+                composable(
+                    route = "trip/{tripId}/activity/{activityId}",
+                    arguments = listOf(
+                        navArgument("tripId") { type = NavType.StringType },
+                        navArgument("activityId") { type = NavType.StringType },
+                    ),
+                ) { entry ->
+                    val tripId = entry.arguments?.getString("tripId").orEmpty()
+                    val activityId = entry.arguments?.getString("activityId").orEmpty()
+                    AddActivityScreen(
+                        tripId = tripId,
+                        activityId = activityId,
                         onSaved = { navController.popBackStack() },
                         onCancel = { navController.popBackStack() },
                     )

@@ -1,0 +1,20 @@
+CREATE TABLE tripDocumentEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    tripId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL,
+    localUri TEXT NOT NULL,
+    addedAtEpochMillis INTEGER NOT NULL
+);
+
+CREATE INDEX tripDocumentEntity_tripId ON tripDocumentEntity(tripId);
+
+selectDocumentsByTrip:
+SELECT * FROM tripDocumentEntity WHERE tripId = ? ORDER BY addedAtEpochMillis DESC;
+
+upsertDocument:
+INSERT OR REPLACE INTO tripDocumentEntity
+VALUES (?, ?, ?, ?, ?, ?);
+
+deleteDocument:
+DELETE FROM tripDocumentEntity WHERE id = ?;

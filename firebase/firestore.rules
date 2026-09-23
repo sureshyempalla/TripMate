@@ -4,6 +4,9 @@ rules_version = '2';
 //   users/{uid}                        -> profile + deviceTokens[] for push
 //   trips/{tripId}                     -> { ownerId, title, destination, startDate, endDate, ... }
 //   activities/{activityId}            -> { tripId, title, startAtEpochMillis, ... }
+//   packing_items/{itemId}             -> { tripId, name, category, isPacked }
+//   expenses/{expenseId}               -> { tripId, title, amountMinorUnits, currencyCode, ... }
+//   documents/{documentId}             -> { tripId, title, type, localUri, addedAtEpochMillis }
 //
 // Activities reference their trip by tripId rather than living in a
 // subcollection, because the client needs a single collection-group query
@@ -34,6 +37,21 @@ service cloud.firestore {
     }
 
     match /activities/{activityId} {
+      allow read, update, delete: if ownsTrip(resource.data.tripId);
+      allow create: if ownsTrip(request.resource.data.tripId);
+    }
+
+    match /packing_items/{itemId} {
+      allow read, update, delete: if ownsTrip(resource.data.tripId);
+      allow create: if ownsTrip(request.resource.data.tripId);
+    }
+
+    match /expenses/{expenseId} {
+      allow read, update, delete: if ownsTrip(resource.data.tripId);
+      allow create: if ownsTrip(request.resource.data.tripId);
+    }
+
+    match /documents/{documentId} {
       allow read, update, delete: if ownsTrip(resource.data.tripId);
       allow create: if ownsTrip(request.resource.data.tripId);
     }

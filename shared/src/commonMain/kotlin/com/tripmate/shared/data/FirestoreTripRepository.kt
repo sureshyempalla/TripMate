@@ -2,7 +2,10 @@ package com.tripmate.shared.data
 
 import com.tripmate.db.TripMateDatabase
 import com.tripmate.shared.model.Activity
+import com.tripmate.shared.model.Expense
+import com.tripmate.shared.model.PackingItem
 import com.tripmate.shared.model.Trip
+import com.tripmate.shared.model.TripDocument
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +21,9 @@ import kotlinx.coroutines.launch
 
 private const val TRIPS_COLLECTION = "trips"
 private const val ACTIVITIES_COLLECTION = "activities"
+private const val PACKING_ITEMS_COLLECTION = "packing_items"
+private const val EXPENSES_COLLECTION = "expenses"
+private const val DOCUMENTS_COLLECTION = "documents"
 
 /**
  * Firestore is the source of truth; SQLDelight is a read cache so the UI has
@@ -86,6 +92,50 @@ class FirestoreTripRepository(
         db.activityQueries.deleteActivity(activityId)
     }
 
+    override fun observePackingItems(tripId: String): Flow<List<PackingItem>> =
+        db.packingItemQueries.selectPackingItemsByTrip(tripId).asFlowList { it.toDomain() }
+
+    override suspend fun createPackingItem(item: PackingItem) {
+        firestore.collection(PACKING_ITEMS_COLLECTION).document(item.id).set(item)
+    }
+
+    override suspend fun updatePackingItem(item: PackingItem) {
+        firestore.collection(PACKING_ITEMS_COLLECTION).document(item.id).set(item)
+    }
+
+    override suspend fun deletePackingItem(itemId: String) {
+        firestore.collection(PACKING_ITEMS_COLLECTION).document(itemId).delete()
+        db.packingItemQueries.deletePackingItem(itemId)
+    }
+
+    override fun observeExpenses(tripId: String): Flow<List<Expense>> =
+        db.expenseQueries.selectExpensesByTrip(tripId).asFlowList { it.toDomain() }
+
+    override suspend fun createExpense(expense: Expense) {
+        firestore.collection(EXPENSES_COLLECTION).document(expense.id).set(expense)
+    }
+
+    override suspend fun updateExpense(expense: Expense) {
+        firestore.collection(EXPENSES_COLLECTION).document(expense.id).set(expense)
+    }
+
+    override suspend fun deleteExpense(expenseId: String) {
+        firestore.collection(EXPENSES_COLLECTION).document(expenseId).delete()
+        db.expenseQueries.deleteExpense(expenseId)
+    }
+
+    override fun observeDocuments(tripId: String): Flow<List<TripDocument>> =
+        db.tripDocumentQueries.selectDocumentsByTrip(tripId).asFlowList { it.toDomain() }
+
+    override suspend fun createDocument(document: TripDocument) {
+        firestore.collection(DOCUMENTS_COLLECTION).document(document.id).set(document)
+    }
+
+    override suspend fun deleteDocument(documentId: String) {
+        firestore.collection(DOCUMENTS_COLLECTION).document(documentId).delete()
+        db.tripDocumentQueries.deleteDocument(documentId)
+    }
+
     override suspend fun startSync(userId: String) {
         stopSync()
         val scope = CoroutineScope(SupervisorJob())
@@ -144,6 +194,75 @@ class FirestoreTripRepository(
                             snapshot.documents.forEach { doc ->
                                 val activity = doc.data<Activity>()
                                 upsertActivityEntity(activity)
+                            }
+                        }
+                }
+            }
+        }
+
+        scope.launch {
+            var packingJob: Job? = null
+            db.tripQueries.selectTripsByOwner(userId).asFlowList { it.id }.collect { tripIds ->
+                packingJob?.cancel()
+                if (tripIds.isEmpty()) return@collect
+                packingJob = launch {
+                    firestore.collection(PACKING_ITEMS_COLLECTION)
+                        .where { "tripId" inArray tripIds }
+                        .snapshots
+                        .catch { }
+                        .collect { snapshot ->
+                            snapshot.documents.forEach { doc ->
+                                val item = doc.data<PackingItem>()
+                                db.packingItemQueries.upsertPackingItem(
+                                    item.id, item.tripId, item.name, item.category.name,
+                                    if (item.isPacked) 1L else 0L,
+                                )
+                            }
+                        }
+                }
+            }
+        }
+
+        scope.launch {
+            var expensesJob: Job? = null
+            db.tripQueries.selectTripsByOwner(userId).asFlowList { it.id }.collect { tripIds ->
+                expensesJob?.cancel()
+                if (tripIds.isEmpty()) return@collect
+                expensesJob = launch {
+                    firestore.collection(EXPENSES_COLLECTION)
+                        .where { "tripId" inArray tripIds }
+                        .snapshots
+                        .catch { }
+                        .collect { snapshot ->
+                            snapshot.documents.forEach { doc ->
+                                val expense = doc.data<Expense>()
+                                db.expenseQueries.upsertExpense(
+                                    expense.id, expense.tripId, expense.title, expense.amountMinorUnits,
+                                    expense.currencyCode, expense.category.name, expense.spentAtEpochMillis, expense.notes,
+                                )
+                            }
+                        }
+                }
+            }
+        }
+
+        scope.launch {
+            var documentsJob: Job? = null
+            db.tripQueries.selectTripsByOwner(userId).asFlowList { it.id }.collect { tripIds ->
+                documentsJob?.cancel()
+                if (tripIds.isEmpty()) return@collect
+                documentsJob = launch {
+                    firestore.collection(DOCUMENTS_COLLECTION)
+                        .where { "tripId" inArray tripIds }
+                        .snapshots
+                        .catch { }
+                        .collect { snapshot ->
+                            snapshot.documents.forEach { doc ->
+                                val document = doc.data<TripDocument>()
+                                db.tripDocumentQueries.upsertDocument(
+                                    document.id, document.tripId, document.title,
+                                    document.type.name, document.localUri, document.addedAtEpochMillis,
+                                )
                             }
                         }
                 }

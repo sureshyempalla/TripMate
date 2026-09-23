@@ -8,7 +8,10 @@ import com.tripmate.shared.data.FirestoreTripRepository
 import com.tripmate.shared.data.TripRepository
 import com.tripmate.shared.notification.NotificationScheduler
 import com.tripmate.shared.viewmodel.AddActivityViewModel
+import com.tripmate.shared.viewmodel.BudgetViewModel
 import com.tripmate.shared.viewmodel.CreateTripViewModel
+import com.tripmate.shared.viewmodel.DocumentWalletViewModel
+import com.tripmate.shared.viewmodel.PackingListViewModel
 import com.tripmate.shared.viewmodel.TripDetailViewModel
 import com.tripmate.shared.viewmodel.TripListViewModel
 import org.koin.core.module.Module
@@ -27,6 +30,9 @@ val sharedModule: Module = module {
 
     factory { (userId: String) -> TripListViewModel(get(), userId) }
     factory { (tripId: String) -> TripDetailViewModel(get(), tripId) }
-    factory { (tripId: String) -> AddActivityViewModel(get(), tripId) }
+    factory { (tripId: String, activityId: String?) -> AddActivityViewModel(get(), tripId, activityId) }
     factory { (ownerId: String) -> CreateTripViewModel(get(), ownerId) }
+    factory { (tripId: String) -> PackingListViewModel(get(), tripId) }
+    factory { (tripId: String) -> BudgetViewModel(get(), tripId) }
+    factory { (tripId: String) -> DocumentWalletViewModel(get(), tripId) }
 }

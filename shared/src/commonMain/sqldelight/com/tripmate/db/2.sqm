@@ -1,0 +1,33 @@
+CREATE TABLE packingItemEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    tripId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    isPacked INTEGER NOT NULL
+);
+
+CREATE INDEX packingItemEntity_tripId ON packingItemEntity(tripId);
+
+CREATE TABLE expenseEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    tripId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    amountMinorUnits INTEGER NOT NULL,
+    currencyCode TEXT NOT NULL,
+    category TEXT NOT NULL,
+    spentAtEpochMillis INTEGER NOT NULL,
+    notes TEXT
+);
+
+CREATE INDEX expenseEntity_tripId ON expenseEntity(tripId);
+
+CREATE TABLE tripDocumentEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    tripId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL,
+    localUri TEXT NOT NULL,
+    addedAtEpochMillis INTEGER NOT NULL
+);
+
+CREATE INDEX tripDocumentEntity_tripId ON tripDocumentEntity(tripId);

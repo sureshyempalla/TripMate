@@ -1,7 +1,10 @@
 package com.tripmate.shared.data
 
 import com.tripmate.shared.model.Activity
+import com.tripmate.shared.model.Expense
+import com.tripmate.shared.model.PackingItem
 import com.tripmate.shared.model.Trip
+import com.tripmate.shared.model.TripDocument
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -45,6 +48,20 @@ interface TripRepository {
     suspend fun createActivity(activity: Activity)
     suspend fun updateActivity(activity: Activity)
     suspend fun deleteActivity(activityId: String)
+
+    fun observePackingItems(tripId: String): Flow<List<PackingItem>>
+    suspend fun createPackingItem(item: PackingItem)
+    suspend fun updatePackingItem(item: PackingItem)
+    suspend fun deletePackingItem(itemId: String)
+
+    fun observeExpenses(tripId: String): Flow<List<Expense>>
+    suspend fun createExpense(expense: Expense)
+    suspend fun updateExpense(expense: Expense)
+    suspend fun deleteExpense(expenseId: String)
+
+    fun observeDocuments(tripId: String): Flow<List<TripDocument>>
+    suspend fun createDocument(document: TripDocument)
+    suspend fun deleteDocument(documentId: String)
 
     /** Starts/refreshes the Firestore listeners that feed the local cache for this user. */
     suspend fun startSync(userId: String)
