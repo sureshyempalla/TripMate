@@ -1,5 +1,7 @@
 package com.tripmate.shared.viewmodel
 
+import com.tripmate.shared.data.ActivityRepository
+import com.tripmate.shared.data.SyncCoordinator
 import com.tripmate.shared.data.SyncStatus
 import com.tripmate.shared.data.TripRepository
 import com.tripmate.shared.model.Trip
@@ -34,7 +36,9 @@ data class NextActivityBanner(
  * native widgets — this class holds no UI framework types.
  */
 class TripListViewModel(
-    private val repository: TripRepository,
+    private val tripRepository: TripRepository,
+    private val activityRepository: ActivityRepository,
+    private val syncCoordinator: SyncCoordinator,
     private val userId: String,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {
@@ -49,7 +53,7 @@ class TripListViewModel(
     }
 
     private fun observeTrips() = scope.launch {
-        repository.observeTrips(userId).collect { trips ->
+        tripRepository.observeTrips(userId).collect { trips ->
             val now = com.tripmate.shared.util.currentEpochMillis()
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
@@ -64,7 +68,7 @@ class TripListViewModel(
     }
 
     private fun observeNextActivity() = scope.launch {
-        repository.observeNextActivity(userId).collect { activity ->
+        activityRepository.observeNextActivity(userId).collect { activity ->
             _uiState.value = _uiState.value.copy(
                 nextActivityBanner = activity?.let {
                     NextActivityBanner(it.tripId, it.title, it.place?.name, it.startAtEpochMillis)
@@ -74,20 +78,20 @@ class TripListViewModel(
     }
 
     private fun observeSyncStatus() = scope.launch {
-        repository.syncStatus.collect { status ->
+        syncCoordinator.syncStatus.collect { status ->
             _uiState.value = _uiState.value.copy(syncStatus = status)
         }
     }
 
     fun refresh() = scope.launch {
-        repository.startSync(userId)
+        syncCoordinator.startSync(userId)
     }
 
     /** Deletes a trip from Firestore and the local cache. Note: this does not
      * currently cascade-delete the trip's activities in Firestore — pre-existing
      * behavior of [TripRepository.deleteTrip], not new here. */
     fun deleteTrip(tripId: String) = scope.launch {
-        repository.deleteTrip(tripId)
+        tripRepository.deleteTrip(tripId)
     }
 }
 

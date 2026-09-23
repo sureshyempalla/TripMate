@@ -1,6 +1,6 @@
 package com.tripmate.shared.viewmodel
 
-import com.tripmate.shared.data.TripRepository
+import com.tripmate.shared.data.ActivityRepository
 import com.tripmate.shared.model.Activity
 import com.tripmate.shared.model.ActivityCategory
 import com.tripmate.shared.model.Place
@@ -33,12 +33,12 @@ data class AddActivityFormState(
 /**
  * Screen state + validation for the Add/Edit Activity flow. When [activityId]
  * is null this is a fresh Add; when it's set, the form loads that activity's
- * current fields (from the same [TripRepository.observeActivities] stream the
+ * current fields (from the same [ActivityRepository.observeActivities] stream the
  * Timeline already uses) and [save] updates it in place instead of creating
  * a new one. [delete] is only meaningful in edit mode.
  */
 class AddActivityViewModel(
-    private val repository: TripRepository,
+    private val repository: ActivityRepository,
     private val tripId: String,
     private val activityId: String? = null,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),

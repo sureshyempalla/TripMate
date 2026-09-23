@@ -1,6 +1,6 @@
 package com.tripmate.shared.viewmodel
 
-import com.tripmate.shared.data.TripRepository
+import com.tripmate.shared.data.BudgetRepository
 import com.tripmate.shared.model.Expense
 import com.tripmate.shared.model.ExpenseCategory
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +30,7 @@ data class BudgetUiState(
 /** Screen state for a trip's expense log. There is no live currency
  * conversion — amounts are totaled within each currency separately. */
 class BudgetViewModel(
-    private val repository: TripRepository,
+    private val repository: BudgetRepository,
     private val tripId: String,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {

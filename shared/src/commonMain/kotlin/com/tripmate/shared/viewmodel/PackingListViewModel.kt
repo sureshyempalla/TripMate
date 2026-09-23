@@ -1,6 +1,6 @@
 package com.tripmate.shared.viewmodel
 
-import com.tripmate.shared.data.TripRepository
+import com.tripmate.shared.data.PackingRepository
 import com.tripmate.shared.model.PackingCategory
 import com.tripmate.shared.model.PackingItem
 import com.tripmate.shared.model.Trip
@@ -27,7 +27,7 @@ data class PackingListUiState(
  * list plus the packed/total counts the progress indicator needs.
  */
 class PackingListViewModel(
-    private val repository: TripRepository,
+    private val repository: PackingRepository,
     private val tripId: String,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {

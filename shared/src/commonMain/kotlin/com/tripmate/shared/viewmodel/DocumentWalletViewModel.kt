@@ -1,6 +1,6 @@
 package com.tripmate.shared.viewmodel
 
-import com.tripmate.shared.data.TripRepository
+import com.tripmate.shared.data.DocumentRepository
 import com.tripmate.shared.model.DocumentType
 import com.tripmate.shared.model.TripDocument
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +25,7 @@ data class DocumentWalletUiState(
  * through, it doesn't touch the filesystem itself.
  */
 class DocumentWalletViewModel(
-    private val repository: TripRepository,
+    private val repository: DocumentRepository,
     private val tripId: String,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {
