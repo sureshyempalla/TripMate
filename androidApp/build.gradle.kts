@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation("androidx.navigation:navigation-compose:2.8.1")
     implementation("io.insert-koin:koin-compose:1.1.5")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.android)
